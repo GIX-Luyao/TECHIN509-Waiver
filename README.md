@@ -72,13 +72,25 @@ Fill in `AI_LOG.md`. Four lines, about two minutes. **A submission without it is
 
 ## Submit
 
+This is your individual exam repository. Do not merge your submission into the
+instructor's repository.
+
+1. Fork this repository into your own GitHub account.
+2. Work in your fork, preferably on a branch named `submission`.
+3. Commit and push your solution:
+
 ```bash
 git add -A
 git commit -m "waiver exam"
-git push
+git push origin submission
 ```
 
-Your **last push before the deadline** is graded. Do not force-push or rewrite history.
+4. Open a pull request from your fork's `submission` branch to this repository's
+`main` branch.
+
+The instructor will review and grade the pull request **without merging it**.
+Your last push before the deadline is graded, so do not force-push or rewrite
+history after submitting. Keep the pull request open unless instructed otherwise.
 
 ---
 
