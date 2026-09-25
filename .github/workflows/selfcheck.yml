@@ -1,0 +1,56 @@
+# Feedback only. This workflow does not score anything and does not decide your waiver.
+name: self-check
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  selfcheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Required files are present
+        run: |
+          missing=0
+          for f in SPEC.md AI_LOG.md ribot/chunking.py ribot/similarity.py \
+                   ribot/retriever.py ribot/harness.py tests/test_chunking.py; do
+            if [ ! -f "$f" ]; then echo "missing: $f"; missing=1; fi
+          done
+          exit $missing
+
+      - name: AI_LOG.md is filled in
+        run: |
+          python - <<'PY'
+          import re, sys
+          blocks = re.split(r"^\*\*\d\.", open("AI_LOG.md").read(), flags=re.M)[1:]
+          gaps = [i + 1 for i, b in enumerate(blocks)
+                  if len(re.sub(r"^[>\s]*", "", b.split("\n", 1)[-1], flags=re.M).strip()) < 2]
+          if len(blocks) != 4 or gaps:
+              print(f"AI_LOG.md is not finished (unanswered: {gaps or 'all'})")
+              sys.exit(1)
+          print("AI_LOG.md looks complete")
+          PY
+
+      - name: tests/test_chunking.py contains tests
+        run: |
+          python -m pytest -q --collect-only tests/test_chunking.py \
+            || { echo "no tests collected in tests/test_chunking.py"; exit 1; }
+
+      - name: Your own test suite
+        run: python -m pytest -q
+
+      - name: Everything imports without a network
+        run: python -c "import ribot.chunking, ribot.similarity, ribot.retriever, ribot.harness; print('ok')"
